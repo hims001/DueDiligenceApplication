@@ -1,0 +1,219 @@
+body {
+    background-image: url("/static/Images/email-pattern.png");
+    background-repeat: repeat round;
+  }
+
+table{
+    width: 63%;
+    margin: auto;
+    border: none;
+}
+
+table td{
+    padding: 5px;
+}
+
+table h3{
+    margin: 0;
+}
+
+table tr td:first-of-type{
+    text-align: right;
+}
+
+table tr td:last-of-type{
+    text-align: center;
+}
+
+  .recom{
+    color: Green;
+    display: none;
+  }
+
+  .not-recom{
+    color: Red;
+    display: none;
+  }
+
+  .fa-info-circle{
+      font-size: medium;
+      cursor: pointer;
+  }
+
+  .news{
+    display:none;
+    position: absolute;
+    width: 90%;
+    border: 1px solid darkslategray;
+    border-radius: 5px;
+    transform: translate(6%, 90%);
+  }
+
+  /*div.news div.title{
+    margin: 20 10 20 10;
+  }*/
+
+  .navbar{
+    border-radius: 0px !important;
+  }
+
+  .navbar-inverse{
+    background-color: black;
+  }
+
+  .navbar-brand{
+    color: white;
+  }
+
+  ul li a{
+    color: white;
+    text-decoration: none;
+  }
+
+  ul li a:hover{
+    color: white;
+    text-decoration: none;
+  }
+
+th {
+    max-width: 100px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/*---------------------------------------------------------------------*/
+.search {
+    width: 100%;
+    position: relative;
+    display: flex;
+    box-shadow: 0 15px 6px -6px darkgray;
+  }
+
+  .wrap input[type='text'] {
+    width: 100%;
+    border: 1px solid slategrey;
+    border-right: none;
+    padding: 5px;
+    outline: none;
+    color:black;
+    border-radius: 10px 0 0 10px;
+    /* box-shadow: inset 0px 0px 5px gray; */
+    line-height: 2.5em;
+    border-right: 0px;
+  }
+
+  .wrap button {
+    width: 88px;
+    height: 52px;
+    border: 1px solid slategrey;
+    background: white;
+    text-align: center;
+    color: slategrey;
+    border-radius: 0 10px 10px 0;
+    cursor: pointer;
+    font-size: 20px;
+    /* box-shadow: inset 0px 0px 5px gray; */
+    border-left: 0px;
+  }
+
+  .wrap button:hover {
+    border: 1px solid slategrey;
+    background: slategrey;
+    color: white;
+    cursor: pointer;
+  }
+
+  /*Resize the wrap to see the search bar change!*/
+  .wrap{
+    height: 132px;
+    width: 50%;
+    position: absolute;
+    top: 15%;
+    left: 50%;
+    transform: translate(-50%, 0%);
+  }
+
+  .note, .output, .error{
+      margin-top: 10px;
+      text-align: center;
+      color: dimgrey;
+      display: none;
+  }
+
+.action-buttons{
+    margin: 20px auto 10px auto;
+    width: 14%;
+}
+
+.action-buttons a {
+  color: black;
+  padding: 11px 20px;
+  text-decoration: none;
+  transition: background-color .3s;
+  border: 1px solid slategrey;
+  font-size: 20px;
+  border-radius: 26px;
+}
+
+  .action-buttons a:hover {
+    background: slategrey;
+    color: white;
+    cursor: pointer;
+  }
+
+  div.news-body{
+    margin: 10px 0px 0px 0px;
+    overflow-y: auto;
+    height: 260px;
+    padding: 10px;
+  }
+
+.news-wrapper{
+    width: 150%;
+    position: relative;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    padding: 10px;
+    margin: 10px;
+}
+
+h4{
+    margin-top:10px;
+    margin-bottom:10px;
+}
+
+.prediction{
+    float:left;
+    font-size: 22px;
+}
+
+.probability-score{
+    float:right;
+    font-size: 22px;
+}
+
+.news-body{
+    border-radius: 5px;
+}
+
+.news-title{
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.title{
+    font-size: x-large;
+}
+
+.card-link{
+    color: #343a40;
+}
+.card-link:hover{
+    color: #343a40;
+}
+
+.card-body{
+    padding: 1rem;
+}

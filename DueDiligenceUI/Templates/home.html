@@ -1,0 +1,26 @@
+{% extends "_base.html" %}
+
+{% block content %}
+<table width="100%">
+    <thead>
+        <td>
+            Employee ID
+        </td>
+        <td>
+            Empployee Name
+        </td>
+    </thead>
+    <tbody>
+{% for employee in employees %}
+<tr>
+    <td>
+        {{ employee.employeeid }}
+    </td>
+    <td>
+        {{ employee.name }}
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}
