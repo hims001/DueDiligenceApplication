@@ -1,21 +1,11 @@
-# DueDiligenceFinalUntouched
+# DueDiligence
+Due Diligence is a web application which allows you to search for keywords and fetches news related to it using News API. Deep learning algorithm works in the backend to semantically analyze news records and categorize them based on whether the news is Good or Bad for the business.
 
-manage.py migrate
-
-manage.py makemigrations
-
-manage.py runserver
-
-manage.py showmigrations
-
-manage.py createsuperuser
-
-(duedilenv) C:\Users\HIMS\Downloads\DueDilWorkspace>python C:\\Users\\HIMS\\Downloads\\DueDilWorkspace\\DueDiligenceUI\\BusinessLogic\\train_model.py
-(duedilenv) C:\Users\HIMS\Downloads\DueDilWorkspace>python C:\\Dev\\Work\\DueDiligence_Material\\DueDil_Final\\DueDiligenceRepo\\DueDiligenceUI\\BusinessLogic\\train_model.py
-
-
-delete from DueDiligenceUI_searchmodel;
-delete from sqlite_sequence where name='DueDiligenceUI_searchmodel';
-
-delete from DueDiligenceUI_trainingmodel;
-delete from sqlite_sequence where name='DueDiligenceUI_trainingmodel';
+### Technology stack
+* Python 3.5
+* Django web framework
+* Deep learning Keras framework 2.0
+* Python libraries like NLTK, Scikit learn, NumPy, Pandas
+* PyCharm IDE
+* Event Registry News API
+* SQLite3 database
