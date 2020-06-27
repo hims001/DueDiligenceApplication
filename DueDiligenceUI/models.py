@@ -1,9 +1,11 @@
 from django.db import models
 from datetime import datetime
 
+
 class Employee(models.Model):
     employeeid = models.IntegerField(null=True)
     name = models.CharField(max_length=100, null=True, blank=True)
+
 
 class SearchModel(models.Model):
     Id = models.AutoField(primary_key=True)
@@ -14,6 +16,7 @@ class SearchModel(models.Model):
 
     def __str__(self):
         return self.SearchText
+
 
 class TrainingModel(models.Model):
     Id = models.AutoField(primary_key=True)

@@ -19,27 +19,39 @@ import DueDiligenceUI.BusinessLogic.ConfigurationManager as cfg
 from nltk.tokenize import sent_tokenize
 from operator import itemgetter
 from sklearn.preprocessing import binarize
-from difflib import SequenceMatcher
+import typing
 
 import warnings
+
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=FutureWarning)
+    warnings.filterwarnings("ignore", category=FutureWarning)
     from keras.models import load_model
     from keras.preprocessing.text import Tokenizer
     from keras.preprocessing.sequence import pad_sequences
     from keras import backend as K
     import tensorflow as tf
+
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
+
 class SearchProcess:
-    #print('CONFIG VALUE :' + cfg.read_config('sql_db_path'))
+    """
+    Class to process the article using keras model and predict the intentS
+    """
+    # print('CONFIG VALUE :' + cfg.read_config('sql_db_path'))
     model_path = cfg.read_config('model_path')
     sql_db_path = cfg.read_config('sql_db_path')
     max_length = int(cfg.read_config('max_length'))
     sentence_buffer = int(cfg.read_config('sentence_buffer'))
     news_fetch_count = int(cfg.read_config('news_fetch_count'))
 
-    def extract_text_from_pdf(self, pdf_path, laparams):
+    def extract_text_from_pdf(self, pdf_path, laparams) -> str:
+        """
+        Extract textual matter from PDF file
+        :param pdf_path: Path of the PDF file
+        :param laparams: PDF properties
+        :return: Text from PDF
+        """
         resource_manager = PDFResourceManager()
         fake_file_handle = io.StringIO()
         converter = TextConverter(resource_manager, fake_file_handle, laparams=laparams)
@@ -61,7 +73,12 @@ class SearchProcess:
             return text
 
     # turn a doc into clean tokens
-    def clean_article(self, article_content):
+    def clean_article(self, article_content: str) -> typing.List[str]:
+        """
+        Data pre processing on the article (Clean up)
+        :param article_content: Actual data article
+        :return: cleaned list of tokens from the article
+        """
         tokens = [word.replace('\\n', ' ').replace('\n', ' ').replace('  ', ' ') for word in article_content.split()]
         # print(tokens)
         # split again in order to accomodate replaced spaces into tokens by white space
@@ -84,12 +101,23 @@ class SearchProcess:
         # print(tokens)
         return tokens
 
-    def unique_list(self, list):
+    def unique_list(self, list: typing.List[str]) -> typing.List[str]:
+        """
+        Get unique list of tokens from the given list of tokens
+        :param list: Input token list
+        :return: Unique list of tokens
+        """
         uniquelist = []
         [uniquelist.append(word) for word in list if word not in uniquelist]
         return uniquelist
 
-    def process_request_pdf(self, entityname):
+    def process_request_pdf(self, entityname: str) -> None:
+        """
+        [Not in Use]
+        Reads data from PDF files
+        :param entityname: Entity name searched
+        :return: None
+        """
         print(entityname)
         # Perform layout analysis for all text
         laparams = pdfminer.layout.LAParams()
@@ -124,12 +152,23 @@ class SearchProcess:
             #     os.remove(join(dirpath, f))
 
     def sortSecond(self, val):
-        return val[1];
+        """
+        Sort by 2nd value in tuple
+        :param val: input tuple
+        :return: 2nd value in tuple
+        """
+        return val[1]
 
-    def process_request(self, entityname, model_id):
-        table = str.maketrans('', '', string.punctuation.replace('&',''))
+    def process_request(self, entityname: str, model_id: int):
+        """
+        Predicts intent or outcome for the entity
+        :param entityname: Entity name
+        :param model_id: Primary key ID of record to be inserted
+        :return: Output value based on success or failure
+        """
+        table = str.maketrans('', '', string.punctuation.replace('&', ''))
         entityname = entityname.translate(table)
-        print('Entity being searched : ' + entityname)
+        print('Entity being searched : {0}', entityname)
         entityList = []
         entityList.append(entityname)
         entityArr = re.split('\W+', entityname)
@@ -142,13 +181,13 @@ class SearchProcess:
             query=CombinedQuery.AND(
                 [
                     BaseQuery(keyword=QueryItems.OR(entityList),
-                              #sourceLocationUri=er.getLocationUri("United States"),
+                              # sourceLocationUri=er.getLocationUri("United States"),
                               lang="eng",
                               dateStart=date.today() - timedelta(days=365),
                               dateEnd=date.today()
                               ),
                     BaseQuery(keyword=QueryItems.OR(
-                       ["sanction", "bribery", "laundering", "corruption", "blacklist", "crime", "scam", "fraud"]))
+                        ["sanction", "bribery", "laundering", "corruption", "blacklist", "crime", "scam", "fraud"]))
                     # "drugs","trafficking","gambling","illegal","smuggling","terrorism",
                     # "extortion","forgery","tax evasion","SDN","burglary","robbery","murder"]))
                 ])
@@ -160,11 +199,11 @@ class SearchProcess:
                                                  returnInfo=ReturnInfo()))
         res = er.execQuery(q)
 
-        #sql_db_path = cfg.read_config('sql_db_path')
+        # sql_db_path = cfg.read_config('sql_db_path')
         con = sqlite3.connect(self.sql_db_path)
         cursorObj = con.cursor()
 
-        #Remove similar redundant news articles
+        # Remove similar redundant news articles
         # article_list = []
         # match_list = []
         # for article1 in res['articles']['results']:
@@ -180,11 +219,11 @@ class SearchProcess:
         #         article_list.append(article1)
         #
         # print(match_list)
-        articles=[]
-        print('Number of articles found: ' + str(len(res['articles']['results'])))
+        articles = []
+        print('Number of articles found: {0}', str(len(res['articles']['results'])))
         for article in res['articles']['results']:
             content = article["body"]
-            #print(content.encode("utf-8"))
+            # print(content.encode("utf-8"))
             title = article["title"]
             url = article["url"]
             articleDateTime = article["dateTime"].replace('T', ' ', 1).replace('Z', '', 1)
@@ -205,43 +244,43 @@ class SearchProcess:
 
         # obtain at most 10 newest articles or blog posts
         X = []
-        print('remaining length : ' + str(len(articles)))
+        print('remaining length : {0}', str(len(articles)))
         for article in articles:
             content = article[1]
             articleDateTime = article[2]
             url = article[3]
-            #print(url)
+            # print(url)
             # Insert article into database
-            sql = "INSERT INTO DueDiligenceUI_trainingmodel (ArticleText, TrainingDate, SearchModel_id, IsTrained, Url) " \
-                  "VALUES(?,'" + articleDateTime + "'," + str(model_id) + ",0,'" + url + "') "
-            #print(sql)
+            sql = f"INSERT INTO DueDiligenceUI_trainingmodel (ArticleText, TrainingDate, SearchModel_id, IsTrained, " \
+                  "Url) VALUES(?,'{articleDateTime}','{str(model_id)}',0,'{url}')"
+            # print(sql)
             cursorObj.execute(sql, [content])
             con.commit()
 
-            #print('---------------------------------Article Body---------------------------------')
+            # print('---------------------------------Article Body---------------------------------')
             # print(content.encode("utf-8"))
-            #print('---------------------------------Tokens---------------------------------')
-            #tokens = self.unique_list(self.clean_article(content))
+            # print('---------------------------------Tokens---------------------------------')
+            # tokens = self.unique_list(self.clean_article(content))
             tokens = self.clean_article(content)
 
-            #Slice out max length characters from the article
+            # Slice out max length characters from the article
             if len(tokens) > self.max_length:
                 tokens = tokens[:self.max_length]
 
             # Grab Before and After 2 sentences of sentence with ENTITY word
             sentences = sent_tokenize(" ".join(tokens))
             indices = [idx for idx, sent in enumerate(sentences) if 'ENTITY' in sent]
-            #print(indices)
+            # print(indices)
             extended_indices = []
             for i, sentence in enumerate(sentences):
                 extended_indices.extend(list(set([i for index in indices if abs(index - i) <= self.sentence_buffer])))
-            #print(extended_indices)
-            #print(len(sentences))
+            # print(extended_indices)
+            # print(len(sentences))
 
             desired_list = list(itemgetter(*extended_indices)(sentences))
 
             token_sentence = " ".join(desired_list)
-            #print(token_sentence)
+            # print(token_sentence)
             X.append(token_sentence)
 
         # Before prediction
@@ -258,26 +297,26 @@ class SearchProcess:
 
                 # integer encode the documents
                 encoded_docs = t.texts_to_sequences(X)
-                #print(encoded_docs)
+                # print(encoded_docs)
 
                 # pad documents to a max length of words
-                #max_length = max([len(word.split()) for word in X])
+                # max_length = max([len(word.split()) for word in X])
                 padded_docs = pad_sequences(encoded_docs, maxlen=self.max_length, padding='post')
-                #print(padded_docs)
+                # print(padded_docs)
 
                 # Predict on searched articles
                 probabilities = model.predict(x=padded_docs, batch_size=5, verbose=2)
-                #classes = model.predict_classes(x=padded_docs, batch_size=5, verbose=2)
+                # classes = model.predict_classes(x=padded_docs, batch_size=5, verbose=2)
                 classes = binarize(probabilities, 0.6)
-                #print(classes)
+                # print(classes)
                 print(probabilities)
 
-                prediction=[]
+                prediction = []
                 for idx in range(len(classes)):
-                    prediction.append((int(classes[idx][0]), round(probabilities[idx][0]*100, 2)))
+                    prediction.append((int(classes[idx][0]), round(probabilities[idx][0] * 100, 2)))
 
                 # Sort in descending order of probability
-                prediction.sort(key = self.sortSecond, reverse = True)
+                prediction.sort(key=self.sortSecond, reverse=True)
 
                 print(prediction)
                 # After prediction
@@ -285,20 +324,20 @@ class SearchProcess:
 
                 # for i in range(len(prediction)):
                 #     if prediction[i][0] > 0.5:
-                #max_prediction = max(prediction)[1];
-                #print('MAX Prediction: ' + str(max_prediction))
-                #i, j = np.where(prediction == max_prediction)
-                #print('MAX Prediction Index: ' + str(i[0]))
-                #print('Target article: ' + str(res['articles']['results'][i[0]]))
-                #if max_prediction > 0.6:
+                # max_prediction = max(prediction)[1];
+                # print('MAX Prediction: ' + str(max_prediction))
+                # i, j = np.where(prediction == max_prediction)
+                # print('MAX Prediction Index: ' + str(i[0]))
+                # print('Target article: ' + str(res['articles']['results'][i[0]]))
+                # if max_prediction > 0.6:
 
                 # Replace ENTITY word with original entity name
                 for article in articles:
                     re_replace = re.compile(re.escape('ENTITY'), re.IGNORECASE)
                     article[1] = re_replace.sub(replaced_entityname, article[1])
-                #print(articles)
+                # print(articles)
                 return [1, prediction, articles]
-                #return [0, round(max_prediction*100, 2)]
+                # return [0, round(max_prediction*100, 2)]
             else:
                 return [-1]
         else:

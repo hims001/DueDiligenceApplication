@@ -1,4 +1,3 @@
-//var template = '<div class="news-container"><div class="news-block-"><div class="news-title"><i><span class="title"></span></i></div><div class="news-body" style="border:1px solid grey"><span class="body"></span></div><div class="probability"><div class="prediction"><b>Recommendation : </b><span class="badge"></span></div><div class="probability-score"><b>Prediction score : </b><span class="badge badge-info"></span></div></div></div></div>';
 var template = '<div class="card">' +
     '<div class="card-header">' +
         '<a class="card-link" data-toggle="collapse" href="">' +
@@ -22,9 +21,6 @@ $('#btnSubmit').on('click', function(){
             $('div.error').css('display', 'none');
             $('div.news-wrapper').css('display', 'none');
             $('div.news-wrapper').empty();
-//            $('div.news').css('display', 'none');
-//            $('div.news span.title').html('');
-//            $('div.news span.body').html('');
             $('div.note h3').text('Your entity ' + $('#id_SearchText').val() + ' is being analysed...')
             xhr.setRequestHeader("X-CSRFToken", csrftoken);
         },
@@ -53,13 +49,6 @@ $('#btnSubmit').on('click', function(){
                        newsBlock.find('.prediction .badge').addClass(output.split(',')[1]).text(output.split(',')[0]);
                       $('div.news-wrapper').append(newsBlock);
                   });
-
-////                $('span.sentiment').css('display', 'inline').text(findSentiment(result.probability));
-//                $('span.recom').css('display', 'none');
-//                $('span.not-recom').css('display', 'inline');
-//                $('span.probability').html(result.probability);
-//                $('div.news span.title').html(result.articleTitle);
-//                $('div.news span.body').html(result.articleBody);
             }
         },
         error: function(jqXHR, status, error){
@@ -71,13 +60,6 @@ $('#btnSubmit').on('click', function(){
     });
     return false;
     });
-
-//    $('.fa-info-circle').click(function(){
-//        if($('span.not-recom').css('display') == 'inline'){
-//            $('div.news').toggle();
-//        }
-//        $('div.probability').toggle();
-//    });
 });
 
 function findSentiment(prediction){

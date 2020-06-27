@@ -14,9 +14,10 @@ import sys
 from operator import itemgetter
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
+import typing
 
 with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=FutureWarning)
+    warnings.filterwarnings("ignore", category=FutureWarning)
     from keras.models import load_model
     from keras.preprocessing.text import Tokenizer
     from keras.preprocessing.sequence import pad_sequences
@@ -24,11 +25,12 @@ with warnings.catch_warnings():
     from keras.layers import Dense, Dropout, GlobalMaxPool1D
     from keras.layers import Flatten
     from keras.layers import Embedding
-    from keras.callbacks import EarlyStopping,CSVLogger
+    from keras.callbacks import EarlyStopping, CSVLogger
     import tensorflow as tf
+
     tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
-#print('CONFIG VALUE :' + cfg.read_config('sql_db_path'))
+# print('CONFIG VALUE :' + cfg.read_config('sql_db_path'))
 
 model_path = cfg.read_config('model_path')
 sql_db_path = cfg.read_config('sql_db_path')
@@ -36,38 +38,39 @@ max_length = int(cfg.read_config('max_length'))
 embedding_dim = int(cfg.read_config('embedding_dim'))
 sentence_buffer = int(cfg.read_config('sentence_buffer'))
 
-def train_sequential_model(X, Y, is_split_data):
+
+def train_sequential_model(X, Y) -> None:
+    """
+    Train Keras model with input data
+    :param X: Independant data X
+    :param Y: Dependant data Y
+    :return: None
+    """
     print('Number of records for training the model : ', str(len(X)))
     # Data pre-processing
     for index, value in enumerate(X):
-        #print(value)
-        #tokens = unique_list(clean_article(value))
         tokens = clean_article(value)
-        #print('\n-------------------------------------------\n')
-        # Slice out max length characters from the article
-        # if len(tokens) > max_length:
-        #     tokens = tokens[:max_length]
 
         cleaned_article = " ".join(tokens)
-        #print(cleaned_article)
+        # print(cleaned_article)
         # Grab Before and After 2 sentences of sentence with ENTITY word
         sentences = sent_tokenize(cleaned_article)
         indices = [idx for idx, sent in enumerate(sentences) if 'ENTITY' in sent]
-        #print(indices)
+        # print(indices)
         extended_indices = []
         for i, sentence in enumerate(sentences):
-            extended_indices.extend(list(set([i for index in indices if abs(index-i) <= sentence_buffer])))
-        #print(extended_indices)
-        #print(len(sentences))
-        #print(cleaned_article)
+            extended_indices.extend(list(set([i for index in indices if abs(index - i) <= sentence_buffer])))
+        # print(extended_indices)
+        # print(len(sentences))
+        # print(cleaned_article)
         desired_list = list(itemgetter(*extended_indices)(sentences))
 
-        #print(" ".join(desired_list))
+        # print(" ".join(desired_list))
 
         X[index] = " ".join(desired_list)
-        #print('\n++++++++++++++++++++++++++++++++++++++++++++++\n')
-        #print(X[index])#.encode('utf-8'))
-        #print('\n++++++++++++++++++++++++++++++++++++++++++++++\n')
+        # print('\n++++++++++++++++++++++++++++++++++++++++++++++\n')
+        # print(X[index])#.encode('utf-8'))
+        # print('\n++++++++++++++++++++++++++++++++++++++++++++++\n')
 
     # prepare tokenizer
     t = Tokenizer()
@@ -76,18 +79,9 @@ def train_sequential_model(X, Y, is_split_data):
     print('vocab_size : ' + str(vocab_size))
 
     if path.exists(model_path + 'trained_model.h5'):
-        #model = load_model(model_path + 'trained_model.h5')
+        # model = load_model(model_path + 'trained_model.h5')
         os.remove(model_path + 'trained_model.h5')
 
-        # max_length = int(cfg.read_config('max_length'))
-        #
-        # for index, value in enumerate(X):
-        #     tokens = unique_list(clean_article(value))
-        #     # Slice out max length characters from the article
-        #     if len(tokens) > max_length:
-        #         tokens = tokens[:max_length]
-        #     X[index] = " ".join(tokens)
-    #else:
     # pad documents to a max length of words
     max_length = max([len(sentence.split()) for sentence in X])
     print('max_length : ' + str(max_length))
@@ -107,9 +101,9 @@ def train_sequential_model(X, Y, is_split_data):
     model.add(Dropout(0.2))
     model.add(Dense(50, activation='relu'))
     model.add(GlobalMaxPool1D())
-    #model.add(Dropout(0.2))
-    #model.add(Flatten())
-    #model.add(Dropout(0.2))
+    # model.add(Dropout(0.2))
+    # model.add(Flatten())
+    # model.add(Dropout(0.2))
     model.add(Dense(1, activation='sigmoid'))
 
     # compile the model
@@ -117,22 +111,22 @@ def train_sequential_model(X, Y, is_split_data):
 
     # integer encode the documents
     encoded_docs = t.texts_to_sequences(X)
-    #print(encoded_docs)
+    # print(encoded_docs)
 
     padded_docs = pad_sequences(encoded_docs, maxlen=max_length, padding='post')
-    #print(padded_docs)
+    # print(padded_docs)
 
     # summarize the model
     print(model.summary())
 
-    X_train,X_test,y_train,y_test = train_test_split(padded_docs,Y, random_state=0)
-    #if is_split_data:
+    X_train, X_test, y_train, y_test = train_test_split(padded_docs, Y, random_state=0)
+    # if is_split_data:
     # fit the model
-    #X_train = padded_docs[:len(padded_docs)-100]
-    #y_train = Y[:len(padded_docs) - 100]
+    # X_train = padded_docs[:len(padded_docs)-100]
+    # y_train = Y[:len(padded_docs) - 100]
     print('X_train, y_train', str(len(X_train)), str(len(y_train)))
-    #X_test = padded_docs[-100:]
-    #y_test = Y[-100:]
+    # X_test = padded_docs[-100:]
+    # y_test = Y[-100:]
     print('X_test, y_test', str(len(X_test)), str(len(y_test)))
 
     # X_val=X_train[-50:]
@@ -141,9 +135,10 @@ def train_sequential_model(X, Y, is_split_data):
 
     es_callback = EarlyStopping(monitor='val_acc', patience=3)
     logger_callback = CSVLogger('training.log', separator=',', append=True)
-    model.fit(X_train, y_train, batch_size=10, epochs=20, validation_data=(X_test, y_test), shuffle=True, verbose=1, callbacks=[logger_callback])#, es_callback])
-    #, validation_freq=5,
-    #, validation_split = 0.2
+    model.fit(X_train, y_train, batch_size=10, epochs=20, validation_data=(X_test, y_test), shuffle=True, verbose=1,
+              callbacks=[logger_callback])  # , es_callback])
+    # , validation_freq=5,
+    # , validation_split = 0.2
 
     # evaluate the model
     loss, accuracy = model.evaluate(X_test, y_test, verbose=1)
@@ -162,10 +157,16 @@ def train_sequential_model(X, Y, is_split_data):
     model.save(model_path + 'trained_model.h5')
     print("Model saved to disk.")
 
+
 def fetch_data_db():
+    """
+    Fetch training data from database
+    :return: Tuple of values
+    """
     conn = sqlite3.connect(sql_db_path)
     c = conn.cursor()
-    myquery = ("SELECT Id,ArticleText,Outcome FROM DueDiligenceUI_trainingmodel WHERE IsTrained=1 and Outcome IS NOT NULL")
+    myquery = (
+        "SELECT Id,ArticleText,Outcome FROM DueDiligenceUI_trainingmodel WHERE IsTrained=1 and Outcome IS NOT NULL")
     c.execute(myquery)
     result = c.fetchall()
     X = []
@@ -175,7 +176,7 @@ def fetch_data_db():
         Ids.append(str(record[0]))
         X.append(record[1])
         Y.append(record[2])
-    #print("UPDATE DueDiligenceUI_trainingmodel SET IsTrained=1 WHERE Id IN (" + ','.join(Ids) + ")")
+    # print("UPDATE DueDiligenceUI_trainingmodel SET IsTrained=1 WHERE Id IN (" + ','.join(Ids) + ")")
     myquery = ("UPDATE DueDiligenceUI_trainingmodel SET IsTrained=1 WHERE Id IN (" + ','.join(Ids) + ")")
     c.execute(myquery)
     conn.commit()
@@ -184,7 +185,12 @@ def fetch_data_db():
 
     return X, Y, False
 
+
 def fetch_data_CSV():
+    """
+    Fetch data form CSV
+    :return: Data from CSV
+    """
     training_data = pd.read_csv(model_path + 'TrainingData.csv', encoding='latin1')
     training_data = training_data.drop('Name', axis=1)
 
@@ -199,7 +205,7 @@ def fetch_data_CSV():
         # Insert article into database
         sql = "INSERT INTO DueDiligenceUI_trainingmodel (ArticleText, Outcome, TrainingDate, SearchModel_id, IsTrained, Url) " \
               "VALUES(?,'" + str(outcome) + "','" + str(articleDateTime) + "',0,1,'') "
-        #print(sql)
+        # print(sql)
         cursorObj.execute(sql, [content])
         conn.commit()
 
@@ -209,35 +215,51 @@ def fetch_data_CSV():
 
     # turn a doc into clean tokens
 
-def clean_article(article_content):
+
+def clean_article(article_content: str):
+    """
+    Pre processing of the data
+    :param article_content: Original article
+    :return:Cleaned article list of tokens
+    """
     tokens = [word.replace('\\n', ' ').replace('\n', ' ').replace('  ', ' ') for word in article_content.split()]
-    #print(tokens)
+    # print(tokens)
     # split again in order to accomodate replaced spaces into tokens by white space
     article_content = " ".join(tokens)
     tokens = article_content.split()
-    #print(tokens)
+    # print(tokens)
     # remove punctuation from each token except Full Stop(.)
     table = str.maketrans('', '', '!"#$%&\'()*+,/:;<=>?@[\\]^_`{|}~')
     tokens = [w.translate(table) for w in tokens]
-    #print(tokens)
+    # print(tokens)
     # remove remaining tokens that are not alphabetic
     tokens = [word.strip() for word in tokens if word.strip().isalpha() or '.' in word or '-' in word]
-    #print(tokens)
+    # print(tokens)
     # filter out stop words
     stop_words = set(stopwords.words('english'))
     tokens = [w for w in tokens if not w in stop_words]
-    #print(tokens)
+    # print(tokens)
     # filter out short tokens
     tokens = [word for word in tokens if len(word) > 1 or '.' in word or '-' in word]
-    #print(tokens)
+    # print(tokens)
     return tokens
 
+
 def unique_list(list):
+    """
+    Get unique list of tokens
+    :param list: Input list
+    :return: Unique list
+    """
     uniquelist = []
     [uniquelist.append(word) for word in list if word not in uniquelist or word == 'ENTITY']
     return uniquelist
 
+
 def create_embedding_matrix(filepath, word_index, embedding_dim):
+    """
+    Create embedding matrix
+    """
     vocab_size = len(word_index) + 1  # Adding again 1 because of reserved 0 index
     embedding_matrix = np.zeros((vocab_size, embedding_dim))
 
@@ -251,7 +273,13 @@ def create_embedding_matrix(filepath, word_index, embedding_dim):
 
     return embedding_matrix
 
-def fetch_data_eventregistry(entityname):
+
+def fetch_data_eventregistry(entityname: str) -> typing.List[str]:
+    """
+    Fetch data from Event Registry API
+    :param entityname: Name of the entity to be searched for
+    :return: All articles related to the entity
+    """
     er = EventRegistry(apiKey="f4a005ab-a24f-487e-bff4-f39b1b2ba6c2")
     # q = QueryArticlesIter(
     #     keywords=entityname,
@@ -262,8 +290,8 @@ def fetch_data_eventregistry(entityname):
     cq = ComplexArticleQuery(
         query=CombinedQuery.AND(
             [
-                BaseQuery(keyword=QueryItems.AND(["narendra", "modi"]),
-                          #sourceLocationUri=er.getLocationUri("United States"),
+                BaseQuery(keyword=QueryItems.AND([entityname]),
+                          # sourceLocationUri=er.getLocationUri("United States"),
                           lang="eng",
                           dateStart=date.today() - timedelta(days=45),
                           dateEnd=date.today()
@@ -299,7 +327,7 @@ def fetch_data_eventregistry(entityname):
         # print('---------------------------------Article Body---------------------------------')
         # print(content + os.linesep)
         # printn('---------------------------------Tokens---------------------------------')
-        #tokens = unique_list(clean_article(content))
+        # tokens = unique_list(clean_article(content))
         tokens = clean_article(content)
         token_sentence = " ".join(tokens)
         # print(token_sentence)
@@ -307,6 +335,7 @@ def fetch_data_eventregistry(entityname):
     cursorObj.close()
     conn.close()
     return X
+
 
 print('#######################################################################################')
 print('Select an operation : ')
@@ -322,4 +351,4 @@ else:
     print('Please select a valid option')
     sys.exit()
 
-train_sequential_model(X,Y, is_split_data)
+train_sequential_model(X, Y, is_split_data)
