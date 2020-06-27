@@ -20,11 +20,8 @@ def search(request):
             # Save search to database
             filled_form.save()
 
-            new_form = SearchForm()
-            return render(request, 'search.html', {'searchForm': new_form})  # , 'note': note})
-    else:
-        form = SearchForm()
-        return render(request, 'search.html', {'searchForm': form})
+    form = SearchForm()
+    return render(request, 'search.html', {'searchForm': form})
 
 
 @csrf_protect
@@ -45,10 +42,10 @@ def process_articles(request):
     sp = SearchProcess()
     outcome = sp.process_request(entityname=entity, model_id=searchModel.Id)
     # print(outcome)
-    if outcome[0] == 1:
+    if outcome.is_success:
         return JsonResponse({
-            'outcome': outcome[0],
-            'probabilityList': outcome[1],
-            'articlesList': outcome[2]
+            'outcome': outcome.is_success,
+            'probabilityList': outcome.prediction_list,
+            'articlesList': outcome.predicted_articles
         })
-    return JsonResponse({'outcome': outcome[0]})
+    return JsonResponse({'outcome': outcome.is_success})

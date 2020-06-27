@@ -31,11 +31,11 @@ $('#btnSubmit').on('click', function(){
         success: function(result){
             console.log(result);
             $('div.note').css('display', 'none');
-            if(result.outcome==-1){
+            if(!result.outcome){
                 $('div.error').css('display', 'block');
                 $('div.error').html('<h3>No information found for this entity</h3>');
             }
-            else if(result.outcome==1){
+            else {
                   $('div.news-wrapper').css('display', 'block');
                   $.each(result.articlesList, function( idx, value ) {
                       var newsBlock = $($.parseHTML(template));

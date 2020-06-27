@@ -39,6 +39,16 @@ embedding_dim = int(cfg.read_config('embedding_dim'))
 sentence_buffer = int(cfg.read_config('sentence_buffer'))
 
 
+def logging_wrapper(func):
+    def inner(*args, **kwargs):
+        print(f'Into {func.__name__}')
+        # print(f'Arguments : {args}')
+        # print(f'Keyword Arguments : {kwargs}')
+        return func(*args, **kwargs)
+    return inner
+
+
+@logging_wrapper
 def train_sequential_model(X, Y) -> None:
     """
     Train Keras model with input data
@@ -78,13 +88,13 @@ def train_sequential_model(X, Y) -> None:
     vocab_size = len(t.word_index) + 1
     print('vocab_size : ' + str(vocab_size))
 
-    if path.exists(model_path + 'trained_model.h5'):
+    if path.exists(f'{model_path}trained_model.h5'):
         # model = load_model(model_path + 'trained_model.h5')
-        os.remove(model_path + 'trained_model.h5')
+        os.remove(f'{model_path}trained_model.h5')
 
     # pad documents to a max length of words
     max_length = max([len(sentence.split()) for sentence in X])
-    print('max_length : ' + str(max_length))
+    print(f'max_length : {str(max_length)}')
     # Write Max length to config file
     cfg.write_config('max_length', str(max_length))
 
@@ -154,10 +164,11 @@ def train_sequential_model(X, Y) -> None:
     print('Loss: ', loss)
 
     # Save the model to disk
-    model.save(model_path + 'trained_model.h5')
+    model.save(f'{model_path}trained_model.h5')
     print("Model saved to disk.")
 
 
+@logging_wrapper
 def fetch_data_db():
     """
     Fetch training data from database
@@ -176,8 +187,7 @@ def fetch_data_db():
         Ids.append(str(record[0]))
         X.append(record[1])
         Y.append(record[2])
-    # print("UPDATE DueDiligenceUI_trainingmodel SET IsTrained=1 WHERE Id IN (" + ','.join(Ids) + ")")
-    myquery = ("UPDATE DueDiligenceUI_trainingmodel SET IsTrained=1 WHERE Id IN (" + ','.join(Ids) + ")")
+    myquery = f"UPDATE DueDiligenceUI_trainingmodel SET IsTrained=1 WHERE Id IN ({','.join(Ids)})"
     c.execute(myquery)
     conn.commit()
     c.close()
@@ -186,12 +196,13 @@ def fetch_data_db():
     return X, Y, False
 
 
+@logging_wrapper
 def fetch_data_CSV():
     """
     Fetch data form CSV
     :return: Data from CSV
     """
-    training_data = pd.read_csv(model_path + 'TrainingData.csv', encoding='latin1')
+    training_data = pd.read_csv(f'{model_path}TrainingData.csv', encoding='latin1')
     training_data = training_data.drop('Name', axis=1)
 
     conn = sqlite3.connect(sql_db_path)
@@ -203,8 +214,8 @@ def fetch_data_CSV():
         outcome = training_data["Pattern"][ind]
         articleDateTime = datetime.today()
         # Insert article into database
-        sql = "INSERT INTO DueDiligenceUI_trainingmodel (ArticleText, Outcome, TrainingDate, SearchModel_id, IsTrained, Url) " \
-              "VALUES(?,'" + str(outcome) + "','" + str(articleDateTime) + "',0,1,'') "
+        sql = f"INSERT INTO DueDiligenceUI_trainingmodel (ArticleText, Outcome, TrainingDate, SearchModel_id, " \
+              f"IsTrained, Url) VALUES(?,'{str(outcome)}','{str(articleDateTime)}',0,1,'') "
         # print(sql)
         cursorObj.execute(sql, [content])
         conn.commit()
@@ -216,6 +227,7 @@ def fetch_data_CSV():
     # turn a doc into clean tokens
 
 
+@logging_wrapper
 def clean_article(article_content: str):
     """
     Pre processing of the data
@@ -245,6 +257,7 @@ def clean_article(article_content: str):
     return tokens
 
 
+@logging_wrapper
 def unique_list(list):
     """
     Get unique list of tokens
@@ -256,6 +269,7 @@ def unique_list(list):
     return uniquelist
 
 
+@logging_wrapper
 def create_embedding_matrix(filepath, word_index, embedding_dim):
     """
     Create embedding matrix
@@ -274,6 +288,7 @@ def create_embedding_matrix(filepath, word_index, embedding_dim):
     return embedding_matrix
 
 
+@logging_wrapper
 def fetch_data_eventregistry(entityname: str) -> typing.List[str]:
     """
     Fetch data from Event Registry API
@@ -342,10 +357,10 @@ print('Select an operation : ')
 print('1. Train the Model')
 print('2. Feedback to the Model')
 print('#######################################################################################')
-input = input('Enter the number : ')
-if input == '1':
+choice = input('Enter the number : ')
+if choice == '1':
     X, Y, is_split_data = fetch_data_CSV()
-elif input == '2':
+elif choice == '2':
     X, Y, is_split_data = fetch_data_db()
 else:
     print('Please select a valid option')

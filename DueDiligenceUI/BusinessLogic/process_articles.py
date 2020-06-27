@@ -20,9 +20,9 @@ from nltk.tokenize import sent_tokenize
 from operator import itemgetter
 from sklearn.preprocessing import binarize
 import typing
+from collections import namedtuple
 
 import warnings
-
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=FutureWarning)
     from keras.models import load_model
@@ -38,7 +38,7 @@ class SearchProcess:
     """
     Class to process the article using keras model and predict the intentS
     """
-    # print('CONFIG VALUE :' + cfg.read_config('sql_db_path'))
+    # print(f'CONFIG VALUE : {cfg.read_config("sql_db_path")}')
     model_path = cfg.read_config('model_path')
     sql_db_path = cfg.read_config('sql_db_path')
     max_length = int(cfg.read_config('max_length'))
@@ -131,9 +131,8 @@ class SearchProcess:
         print('Reading PDF files...')
         for article in articles:
             fullpath = join(dirpath, article)
-            print(fullpath + os.linesep)
+            print(f'{fullpath}{os.linesep}')
             content = self.extract_text_from_pdf(fullpath, laparams)
-            # print(content + os.linesep)
             print('Tokens:')
             tokens = self.unique_list(self.clean_article(content))
             print(tokens)
@@ -151,15 +150,7 @@ class SearchProcess:
             # for f in filelist:
             #     os.remove(join(dirpath, f))
 
-    def sortSecond(self, val):
-        """
-        Sort by 2nd value in tuple
-        :param val: input tuple
-        :return: 2nd value in tuple
-        """
-        return val[1]
-
-    def process_request(self, entityname: str, model_id: int):
+      def process_request(self, entityname: str, model_id: int):
         """
         Predicts intent or outcome for the entity
         :param entityname: Entity name
@@ -173,7 +164,7 @@ class SearchProcess:
         entityList.append(entityname)
         entityArr = re.split('\W+', entityname)
         if len(entityArr) == 2:
-            entityList.append(entityArr[1] + " " + entityArr[0])
+            entityList.append(f'{entityArr[1]} {entityArr[0]}')
 
         print(entityList)
         er = EventRegistry(apiKey="f4a005ab-a24f-487e-bff4-f39b1b2ba6c2")
@@ -233,7 +224,7 @@ class SearchProcess:
                 content = re_replace.sub('ENTITY', content)
                 replaced_entityname = entityname
             if len(entityArr) == 2:
-                entity_temp = entityArr[1] + " " + entityArr[0]
+                entity_temp = f'{entityArr[1]}" "{entityArr[0]}'
                 if entity_temp.lower() in content.lower():
                     re_replace = re.compile(re.escape(entity_temp), re.IGNORECASE)
                     content = re_replace.sub('ENTITY', content)
@@ -286,10 +277,12 @@ class SearchProcess:
         # Before prediction
         K.clear_session()
 
-        if path.exists(self.model_path + 'trained_model.h5'):
+        OutputParams = namedtuple("output", ["is_success", "prediction_list", "predicted_articles"])
+
+        if path.exists(f'{self.model_path}trained_model.h5'):
             if len(X) > 0:
                 # Load the model
-                model = load_model(self.model_path + 'trained_model.h5')
+                model = load_model(f'{self.model_path}trained_model.h5')
 
                 # prepare tokenizer
                 t = Tokenizer()
@@ -316,7 +309,7 @@ class SearchProcess:
                     prediction.append((int(classes[idx][0]), round(probabilities[idx][0] * 100, 2)))
 
                 # Sort in descending order of probability
-                prediction.sort(key=self.sortSecond, reverse=True)
+                sorted(prediction, key=lambda x: x[1], reverse=True)
 
                 print(prediction)
                 # After prediction
@@ -336,9 +329,9 @@ class SearchProcess:
                     re_replace = re.compile(re.escape('ENTITY'), re.IGNORECASE)
                     article[1] = re_replace.sub(replaced_entityname, article[1])
                 # print(articles)
-                return [1, prediction, articles]
-                # return [0, round(max_prediction*100, 2)]
+
+                return OutputParams(True, prediction, articles)
             else:
-                return [-1]
+                return OutputParams(False, "", "")
         else:
             raise Exception('Model is not yet ready to predict')
