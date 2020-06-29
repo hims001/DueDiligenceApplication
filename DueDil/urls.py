@@ -16,14 +16,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from DueDiligenceUI import views
-from DueDiligenceUI.views import process_articles
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.search, name='search'),
-    path('process_articles/', process_articles, name='process_articles'),
-    path('employee/', views.home, name='home'),
-    path('employees/<int:id>/', views.employee_detail, name='employee_detail'),
+    path('process_articles/', views.process_articles, name='process_articles'),
 ]
 
 admin.site.site_header = "Due Diligence Administration"

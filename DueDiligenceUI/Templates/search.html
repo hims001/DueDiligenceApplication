@@ -4,7 +4,6 @@
 {% block content %}
 <form action="{% url 'search' %}" method="POST">
     {% csrf_token %}
-<!--    <img id="imgMarker" src="{% static 'Images/Markers.PNG' %}" alt="No Image" height="120" width="130"/>-->
     <div class="wrap">
         <div class="search">
             {{ searchForm }}
@@ -21,50 +20,7 @@
         <div class="error">
         </div>
         <div id="accordion" class="news-wrapper">
-<!--            <div class="action-buttons">-->
-<!--                <a href="#">❮</a><span style="margin:20px;"></span>-->
-<!--                <a href="#">❯</a>-->
-<!--            </div>-->
         </div>
     </div>
-<!--        <table class="output">-->
-<!--            <tbody>-->
-<!--            <tr>-->
-<!--                <td><h3><b>Recommendation : </b></h3></td>-->
-<!--                <td>-->
-<!--                    <h3><span class="recom">Recommended</span>-->
-<!--                    <span class="not-recom">Not Recommended</span>-->
-<!--                    <sup><i class="fa fa-info-circle"></i></sup></h3>-->
-<!--                </td>-->
-<!--            </tr>-->
-<!--            <tr>-->
-<!--                <td><h3><b>Confidence of Prediction(%) : </b></h3></td>-->
-<!--                <td><h3><span class="probability"></span>%</h3></td>-->
-<!--            </tr>-->
-<!--            </tbody>-->
-<!--        </table>-->
-<!--    <div class="news">-->
-<!--        <div class="title">-->
-<!--            <h3><u><i><span class="title"></span></i></u></h3>-->
-<!--        </div>-->
-<!--        <div class="contentDiv">-->
-<!--            <span class="body"></span>-->
-<!--        </div>-->
-<!--    </div>-->
 </form>
-<!--<div class="card">-->
-<!--    <div class="card-header">-->
-<!--        <a class="card-link" data-toggle="collapse" href="#collapseOne">-->
-<!--          <div class="prediction"><b>Recommendation : </b><span class="badge"></span></div>-->
-<!--            <div class="probability-score"><b>Prediction score : </b><span class="badge badge-info"></span></div>-->
-<!--        </a>-->
-<!--    </div>-->
-<!--    <div id="collapseOne" class="collapse show" data-parent="#accordion">-->
-<!--       <div class="card-body">-->
-<!--         <div class="news-title"><i><span class="title"></span></i></div>-->
-<!--         <div class="news-body" style="border:1px solid grey"><span class="body"></span></div>-->
-<!--       </div>-->
-<!--    </div>-->
-<!--</div>-->
-
 {% endblock %}

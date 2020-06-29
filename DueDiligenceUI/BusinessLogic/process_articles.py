@@ -150,7 +150,7 @@ class SearchProcess:
             # for f in filelist:
             #     os.remove(join(dirpath, f))
 
-      def process_request(self, entityname: str, model_id: int):
+    def process_request(self, entityname: str, model_id: int):
         """
         Predicts intent or outcome for the entity
         :param entityname: Entity name
@@ -309,20 +309,11 @@ class SearchProcess:
                     prediction.append((int(classes[idx][0]), round(probabilities[idx][0] * 100, 2)))
 
                 # Sort in descending order of probability
-                sorted(prediction, key=lambda x: x[1], reverse=True)
+                prediction = sorted(prediction, key=lambda x: x[1], reverse=True)
 
                 print(prediction)
                 # After prediction
                 K.clear_session()
-
-                # for i in range(len(prediction)):
-                #     if prediction[i][0] > 0.5:
-                # max_prediction = max(prediction)[1];
-                # print('MAX Prediction: ' + str(max_prediction))
-                # i, j = np.where(prediction == max_prediction)
-                # print('MAX Prediction Index: ' + str(i[0]))
-                # print('Target article: ' + str(res['articles']['results'][i[0]]))
-                # if max_prediction > 0.6:
 
                 # Replace ENTITY word with original entity name
                 for article in articles:

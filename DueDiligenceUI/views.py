@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.http import Http404
-from .models import Employee, SearchModel
+from .models import SearchModel
 from .forms import SearchForm
 from DueDiligenceUI.BusinessLogic.process_articles import SearchProcess
 from django.views.decorators.csrf import csrf_protect
