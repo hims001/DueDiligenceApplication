@@ -19,7 +19,7 @@ from DueDiligenceUI import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.search, name='search'),
+    path('', views.SearchView.as_view(), name='search'),
     path('process_articles/', views.process_articles, name='process_articles'),
 ]
 

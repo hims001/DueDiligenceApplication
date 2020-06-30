@@ -1,27 +1,29 @@
 from django.shortcuts import render
-from django.http import HttpResponse
 from django.http import JsonResponse
-from django.http import Http404
 from .models import SearchModel
 from .forms import SearchForm
 from DueDiligenceUI.BusinessLogic.process_articles import SearchProcess
 from django.views.decorators.csrf import csrf_protect
 from django.utils import timezone
+from django.views import View
 
 
-def search(request):
+class SearchView(View):
     """
-    Search route
+    Class based view for search view
     """
-    if request.method == 'POST':
+    template_name = 'search.html'
+
+    def get(self, request):
+        form = SearchForm()
+        return render(request, self.template_name, {'searchForm': form})
+
+    def post(self, request):
         filled_form = SearchForm(request.POST)
         if filled_form.is_valid():
-            # note = f"Your entity {filled_form.cleaned_data['SearchText']} is being analysed..."
             # Save search to database
             filled_form.save()
-
-    form = SearchForm()
-    return render(request, 'search.html', {'searchForm': form})
+        return render(request, self.template_name, {'searchForm': filled_form})
 
 
 @csrf_protect
@@ -32,20 +34,29 @@ def process_articles(request):
     :return: JSON output response
     """
     entity = request.POST.get('searchText').strip()
+    if request.session.get(entity, None) is None:
+        searchModel = SearchModel()
+        searchModel.SearchText = entity
+        searchModel.RequestedDate = timezone.now()
+        searchModel.save(force_insert=True)
+        # print(searchModel.Id)
+        # Passing search text to model for prediction
+        sp = SearchProcess()
+        outcome = sp.process_request(entityname=entity, model_id=searchModel.Id)
 
-    searchModel = SearchModel()
-    searchModel.SearchText = entity
-    searchModel.RequestedDate = timezone.now()
-    searchModel.save(force_insert=True)
-    # print(searchModel.Id)
-    # Passing search text to model for prediction
-    sp = SearchProcess()
-    outcome = sp.process_request(entityname=entity, model_id=searchModel.Id)
-    # print(outcome)
+        # Store entity and outcome in session for repeated requests
+        request.session[entity] = outcome
+        request.session.set_expiry(120)
+    else:
+        outcome = SearchProcess.OutputParams(request.session[entity][0],
+                                             request.session[entity][1],
+                                             request.session[entity][2])
+
     if outcome.is_success:
         return JsonResponse({
             'outcome': outcome.is_success,
             'probabilityList': outcome.prediction_list,
             'articlesList': outcome.predicted_articles
         })
-    return JsonResponse({'outcome': outcome.is_success})
+    else:
+        return JsonResponse({'outcome': outcome.is_success})

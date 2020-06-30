@@ -45,6 +45,8 @@ class SearchProcess:
     sentence_buffer = int(cfg.read_config('sentence_buffer'))
     news_fetch_count = int(cfg.read_config('news_fetch_count'))
 
+    OutputParams = namedtuple("output", ["is_success", "prediction_list", "predicted_articles"])
+
     def extract_text_from_pdf(self, pdf_path, laparams) -> str:
         """
         Extract textual matter from PDF file
@@ -277,8 +279,6 @@ class SearchProcess:
         # Before prediction
         K.clear_session()
 
-        OutputParams = namedtuple("output", ["is_success", "prediction_list", "predicted_articles"])
-
         if path.exists(f'{self.model_path}trained_model.h5'):
             if len(X) > 0:
                 # Load the model
@@ -321,8 +321,8 @@ class SearchProcess:
                     article[1] = re_replace.sub(replaced_entityname, article[1])
                 # print(articles)
 
-                return OutputParams(True, prediction, articles)
+                return self.OutputParams(True, prediction, articles)
             else:
-                return OutputParams(False, "", "")
+                return self.OutputParams(False, "", "")
         else:
             raise Exception('Model is not yet ready to predict')
