@@ -1,5 +1,6 @@
 from configparser import ConfigParser
 
+# Config file path
 config_path = 'DueDiligenceUI/BusinessLogic/app.config'
 parser = ConfigParser()
 parser.read(config_path)

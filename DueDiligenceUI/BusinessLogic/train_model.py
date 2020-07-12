@@ -111,9 +111,6 @@ def train_sequential_model(X, Y) -> None:
     model.add(Dropout(0.2))
     model.add(Dense(50, activation='relu'))
     model.add(GlobalMaxPool1D())
-    # model.add(Dropout(0.2))
-    # model.add(Flatten())
-    # model.add(Dropout(0.2))
     model.add(Dense(1, activation='sigmoid'))
 
     # compile the model
@@ -138,10 +135,6 @@ def train_sequential_model(X, Y) -> None:
     # X_test = padded_docs[-100:]
     # y_test = Y[-100:]
     print('X_test, y_test', str(len(X_test)), str(len(y_test)))
-
-    # X_val=X_train[-50:]
-    # y_val=y_train[-50:]
-    # print('X_val, y_val', str(len(X_val)), str(len(y_val)))
 
     es_callback = EarlyStopping(monitor='val_acc', patience=3)
     logger_callback = CSVLogger('training.log', separator=',', append=True)
