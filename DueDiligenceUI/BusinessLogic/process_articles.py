@@ -21,8 +21,10 @@ from operator import itemgetter
 from sklearn.preprocessing import binarize
 import typing
 from collections import namedtuple
+from DueDiligenceUI.models import TrainingModel
 
 import warnings
+
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=FutureWarning)
     from keras.models import load_model
@@ -193,8 +195,6 @@ class SearchProcess:
         res = er.execQuery(q)
 
         # sql_db_path = cfg.read_config('sql_db_path')
-        con = sqlite3.connect(self.sql_db_path)
-        cursorObj = con.cursor()
 
         # Remove similar redundant news articles
         # article_list = []
@@ -244,11 +244,12 @@ class SearchProcess:
             url = article[3]
             # print(url)
             # Insert article into database
-            sql = f"INSERT INTO DueDiligenceUI_trainingmodel (ArticleText, TrainingDate, SearchModel_id, IsTrained, " \
-                  "Url) VALUES(?,'{articleDateTime}','{str(model_id)}',0,'{url}')"
-            # print(sql)
-            cursorObj.execute(sql, [content])
-            con.commit()
+            training_model = TrainingModel(ArticleText=content,
+                                           TrainingDate=articleDateTime,
+                                           SearchModel_id=str(model_id),
+                                           IsTrained=0,
+                                           Url=url)
+            training_model.save()
 
             # print('---------------------------------Article Body---------------------------------')
             # print(content.encode("utf-8"))

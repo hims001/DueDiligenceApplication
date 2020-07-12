@@ -15,6 +15,7 @@ from operator import itemgetter
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 import typing
+from DueDiligenceUI.models import TrainingModel
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=FutureWarning)
@@ -167,12 +168,13 @@ def fetch_data_db():
     Fetch training data from database
     :return: Tuple of values
     """
-    conn = sqlite3.connect(sql_db_path)
-    c = conn.cursor()
-    myquery = (
-        "SELECT Id,ArticleText,Outcome FROM DueDiligenceUI_trainingmodel WHERE IsTrained=1 and Outcome IS NOT NULL")
-    c.execute(myquery)
-    result = c.fetchall()
+    # conn = sqlite3.connect(sql_db_path)
+    # c = conn.cursor()
+    # myquery = (
+    #    "SELECT Id,ArticleText,Outcome FROM DueDiligenceUI_trainingmodel WHERE IsTrained=1 and Outcome IS NOT NULL")
+    # c.execute(myquery)
+    result = TrainingModel.objects.filter(IsTrained=1).filter(Outcome__isnull=True)
+    # result = c.fetchall()
     X = []
     Y = []
     Ids = []
@@ -180,11 +182,12 @@ def fetch_data_db():
         Ids.append(str(record[0]))
         X.append(record[1])
         Y.append(record[2])
-    myquery = f"UPDATE DueDiligenceUI_trainingmodel SET IsTrained=1 WHERE Id IN ({','.join(Ids)})"
-    c.execute(myquery)
-    conn.commit()
-    c.close()
-    conn.close()
+    # myquery = f"UPDATE DueDiligenceUI_trainingmodel SET IsTrained=1 WHERE Id IN ({','.join(Ids)})"
+    TrainingModel.objects.filter(Id=','.join(Ids)).update(IsTrained=1)
+    # c.execute(myquery)
+    # conn.commit()
+    # c.close()
+    # conn.close()
 
     return X, Y, False
 
@@ -198,23 +201,31 @@ def fetch_data_CSV():
     training_data = pd.read_csv(f'{model_path}TrainingData.csv', encoding='latin1')
     training_data = training_data.drop('Name', axis=1)
 
-    conn = sqlite3.connect(sql_db_path)
-    c = conn.cursor()
-    cursorObj = conn.cursor()
+    # conn = sqlite3.connect(sql_db_path)
+    # c = conn.cursor()
+    # cursorObj = conn.cursor()
 
     for ind in training_data.index:
         content = training_data["Data"][ind]
         outcome = training_data["Pattern"][ind]
         articleDateTime = datetime.today()
-        # Insert article into database
-        sql = f"INSERT INTO DueDiligenceUI_trainingmodel (ArticleText, Outcome, TrainingDate, SearchModel_id, " \
-              f"IsTrained, Url) VALUES(?,'{str(outcome)}','{str(articleDateTime)}',0,1,'') "
-        # print(sql)
-        cursorObj.execute(sql, [content])
-        conn.commit()
 
-    cursorObj.close()
-    conn.close()
+        training_model = TrainingModel(ArticleText=content,
+                                       Outcome=str(outcome),
+                                       TrainingDate=articleDateTime,
+                                       SearchModel_id=0,
+                                       IsTrained=1,
+                                       Url='')
+        # Insert article into database
+        training_model.save()
+        # sql = f"INSERT INTO DueDiligenceUI_trainingmodel (ArticleText, Outcome, TrainingDate, SearchModel_id, " \
+        #      f"IsTrained, Url) VALUES(?,'{str(outcome)}','{str(articleDateTime)}',0,1,'') "
+        # print(sql)
+        # cursorObj.execute(sql, [content])
+        # conn.commit()
+
+    # cursorObj.close()
+    # conn.close()
     return training_data['Data'], training_data['Pattern'], True
 
     # turn a doc into clean tokens
@@ -319,19 +330,24 @@ def fetch_data_eventregistry(entityname: str) -> typing.List[str]:
 
     X = []
 
-    conn = sqlite3.connect(sql_db_path)
-    c = conn.cursor()
-    cursorObj = conn.cursor()
+    # conn = sqlite3.connect(sql_db_path)
+    # c = conn.cursor()
+    # cursorObj = conn.cursor()
     # obtain at most 500 newest articles or blog posts
     for article in res['articles']['results']:
         content = article["body"]
         articleDateTime = article["dateTime"].replace('T', ' ', 1).replace('Z', '', 1)
         # Insert article into database
-        sql = "INSERT INTO DueDiligenceUI_trainingmodel (ArticleText, TrainingDate, SearchModel_id, IsTrained) " \
-              "VALUES(?,'" + articleDateTime + "',0,0) "
-        print(sql)
-        cursorObj.execute(sql, [content])
-        conn.commit()
+        training_model = TrainingModel(ArticleText=content,
+                                       TrainingDate=articleDateTime,
+                                       SearchModel_id=0,
+                                       IsTrained=0)
+        training_model.save()
+        #sql = "INSERT INTO DueDiligenceUI_trainingmodel (ArticleText, TrainingDate, SearchModel_id, IsTrained) " \
+        #      "VALUES(?,'" + articleDateTime + "',0,0) "
+        #print(sql)
+        #cursorObj.execute(sql, [content])
+        #conn.commit()
         # print('---------------------------------Article Body---------------------------------')
         # print(content + os.linesep)
         # printn('---------------------------------Tokens---------------------------------')
@@ -340,8 +356,8 @@ def fetch_data_eventregistry(entityname: str) -> typing.List[str]:
         token_sentence = " ".join(tokens)
         # print(token_sentence)
         X.append(token_sentence)
-    cursorObj.close()
-    conn.close()
+    # cursorObj.close()
+    # conn.close()
     return X
 
 
